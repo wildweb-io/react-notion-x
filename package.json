@@ -1,6 +1,6 @@
 {
   "name": "@wildweb/react-notion-x",
-  "version": "6.16.5",
+  "version": "6.16.7",
   "type": "module",
   "publishConfig": {
     "access": "public"

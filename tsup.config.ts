@@ -21,14 +21,8 @@ const baseConfig: Options = {
 export default defineConfig([
   {
     ...baseConfig,
-    outDir: 'build/dev',
-    minify: false,
-    sourcemap: true
-  },
-  {
-    ...baseConfig,
     outDir: 'build',
-    minify: false,
-    sourcemap: false
+    minify: true,
+    sourcemap: true
   }
 ])
