@@ -23,7 +23,8 @@ const supportedAssetTypes = [
   'pdf',
   'gist',
   'codepen',
-  'drive'
+  'drive',
+  'link_preview'
 ]
 
 export const Asset: React.FC<{
@@ -176,7 +177,8 @@ export const Asset: React.FC<{
     block.type === 'excalidraw' ||
     block.type === 'codepen' ||
     block.type === 'drive' ||
-    block.type === 'replit'
+    block.type === 'replit' ||
+    block.type === 'link_preview'
   ) {
     if (
       block.type === 'video' &&
@@ -190,7 +192,6 @@ export const Asset: React.FC<{
       source.indexOf('getcloudapp') < 0
     ) {
       style.paddingBottom = undefined
-
       content = (
         <video
           playsInline

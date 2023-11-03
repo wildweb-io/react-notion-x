@@ -14,7 +14,6 @@ import { AssetWrapper } from './components/asset-wrapper'
 import { Audio } from './components/audio'
 import { EOI } from './components/eoi'
 import { File } from './components/file'
-import { GoogleDrive } from './components/google-drive'
 import { LazyImage } from './components/lazy-image'
 import { PageAside } from './components/page-aside'
 import { PageIcon } from './components/page-icon'
@@ -53,6 +52,34 @@ const tocIndentLevelCache: {
 
 const pageCoverStyleCache: Record<string, object> = {}
 
+const formatVimeoURL = (url: string) => {
+  const match = url.match(
+    /(?:https:\/\/)(?:www\.)?(?:player\.)?vimeo.com\/(?:video\/)?(\d+)/
+  )
+  return match ? `https://player.vimeo.com/video/${match[1]}` : url
+}
+
+const formatDailymotionURL = (url: string) => {
+  const match = url.match(
+    /(?:https:\/\/)(?:www\.)?(?:dailymotion\.com|dai\.ly)\/(?:embed\/)?(?:video\/)?([a-zA-Z0-9]+)/
+  )
+  return match ? `https://www.dailymotion.com/embed/video/${match[1]}` : url
+}
+
+const formatYouTubeURL = (url: string) => {
+  const regex =
+    /(?:https:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/)?([^&\s?]+)(?:.*?[?&]t=(\d+)|.*?[?&]start=(\d+))?/
+  const match = url.match(regex)
+  if (match) {
+    let formattedURL = `https://www.youtube.com/embed/${match[1]}`
+    const startTime = match[2] || match[3]
+    if (startTime) {
+      formattedURL += `?start=${startTime}`
+    }
+    return formattedURL
+  }
+  return url
+}
 export const Block: React.FC<BlockProps> = (props) => {
   const ctx = useNotionContext()
   const {
@@ -81,7 +108,6 @@ export const Block: React.FC<BlockProps> = (props) => {
     footer,
     pageHeader,
     pageFooter,
-    pageTitle,
     pageAside,
     pageCover,
     hideBlockId,
@@ -207,11 +233,11 @@ export const Block: React.FC<BlockProps> = (props) => {
 
                     {pageHeader}
 
-                    <h1 className='notion-title'>
-                      {pageTitle ?? (
-                        <Text value={properties?.title} block={block} />
-                      )}
-                    </h1>
+                    {/* <h1 className='notion-title'> */}
+                    {/*   {pageTitle ?? ( */}
+                    {/*     <Text value={properties?.title} block={block} /> */}
+                    {/*   )} */}
+                    {/* </h1> */}
 
                     {(block.type === 'collection_view_page' ||
                       (block.type === 'page' &&
@@ -403,6 +429,65 @@ export const Block: React.FC<BlockProps> = (props) => {
         return <div className={cs('notion-blank', blockId)}>&nbsp;</div>
       }
 
+      // Google Slides
+      if (
+        block.properties &&
+        block.properties.title &&
+        block.properties.title[0] &&
+        block.properties.title[0][0] &&
+        block.properties.title[0][0].includes(
+          'https://docs.google.com/presentation/d'
+        )
+      ) {
+        return (
+          <components.Embed
+            className={blockId}
+            blockId={blockId}
+            block={block}
+          />
+        )
+        // return /* @__PURE__ */ React28.createElement(components.Embed, {
+        //   blockId,
+        //   block,
+        //   className: blockId
+        // })
+      }
+
+      // Google Drive File
+      if (
+        block.properties &&
+        block.properties.title &&
+        block.properties.title[0] &&
+        block.properties.title[0][0] &&
+        block.properties.title[0][0].includes('https://drive.google.com/file/d')
+      ) {
+        return (
+          <components.Embed
+            className={blockId}
+            blockId={blockId}
+            block={block}
+          />
+        )
+      }
+
+      if (
+        block.properties &&
+        block.properties.title &&
+        block.properties.title[0] &&
+        block.properties.title[0][0] &&
+        block.properties.title[0][0].includes(
+          'https://docs.google.com/spreadsheets/d'
+        )
+      ) {
+        return (
+          <components.Embed
+            className={blockId}
+            blockId={blockId}
+            block={block}
+          />
+        )
+      }
+
       const blockColor = block.format?.block_color
 
       return (
@@ -489,23 +574,73 @@ export const Block: React.FC<BlockProps> = (props) => {
     // fallthrough
     case 'gist':
     // fallthrough
-    case 'video':
-      return <AssetWrapper blockId={blockId} block={block} />
-
-    case 'drive': {
-      const properties = block.format?.drive_properties
-      if (!properties) {
-        //check if this drive actually needs to be embeded ex. google sheets.
-        if (block.format?.display_source) {
-          return <AssetWrapper blockId={blockId} block={block} />
-        }
+    case 'video': {
+      if (
+        block.properties &&
+        block.properties.source &&
+        block.properties.source[0] &&
+        block.properties.source[0][0] &&
+        block.properties.source[0][0].includes('genial.ly/')
+      ) {
+        return (
+          <components.Embed
+            className={blockId}
+            blockId={blockId}
+            block={block}
+          />
+        )
       }
 
+      if (
+        block.properties &&
+        block.properties.source &&
+        block.properties.source[0] &&
+        block.properties.source[0][0] &&
+        ['dailymotion.com', 'dai.ly'].some((domain) =>
+          block.properties.source[0][0].includes(domain)
+        )
+      ) {
+        block.properties.source[0][0] = formatDailymotionURL(
+          block.properties.source[0][0]
+        )
+        return (
+          <components.Embed
+            className={blockId}
+            blockId={blockId}
+            block={block}
+          />
+        )
+      }
+
+      if (
+        block.properties &&
+        block.properties.source &&
+        block.properties.source[0] &&
+        block.properties.source[0][0] &&
+        block.properties.source[0][0].includes('vimeo.com')
+      ) {
+        block.properties.source[0][0] = formatVimeoURL(
+          block.properties.source[0][0]
+        )
+      }
+      if (
+        block.properties &&
+        block.properties.source &&
+        block.properties.source[0] &&
+        block.properties.source[0][0] &&
+        block.properties.source[0][0].includes('youtu')
+      ) {
+        block.properties.source[0][0] = formatYouTubeURL(
+          block.properties.source[0][0]
+        )
+      }
+
+      return <AssetWrapper blockId={blockId} block={block} />
+    }
+
+    case 'drive': {
       return (
-        <GoogleDrive
-          block={block as types.GoogleDriveBlock}
-          className={blockId}
-        />
+        <components.Embed className={blockId} blockId={blockId} block={block} />
       )
     }
 
@@ -524,6 +659,10 @@ export const Block: React.FC<BlockProps> = (props) => {
         />
       )
 
+    case 'link_preview':
+      return (
+        <components.Embed className={blockId} blockId={blockId} block={block} />
+      )
     case 'code':
       return <components.Code block={block as types.CodeBlock} />
 

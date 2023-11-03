@@ -17,6 +17,10 @@ export const defaultMapImageUrl = (
     return url
   }
 
+  if (url.startsWith('https://drive.google.com/file/d/')) {
+    return url
+  }
+
   try {
     const u = new URL(url)
 
