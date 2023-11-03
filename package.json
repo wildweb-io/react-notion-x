@@ -1,6 +1,6 @@
 {
   "name": "@wildweb/react-notion-x",
-  "version": "6.16.4",
+  "version": "6.16.5",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -9,6 +9,7 @@
     "build",
     "src/styles.css"
   ],
+  "main": "build/index.js",
   "description": "Fast and accurate React renderer for Notion.",
   "repository": "wildweb-io/react-notion-x",
   "author": "Travis Fischer <travis@transitivebullsh.it>",
