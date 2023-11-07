@@ -1,6 +1,6 @@
 {
   "name": "@wildweb/react-notion-x",
-  "version": "6.16.8",
+  "version": "7.0.0-1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,6 +19,7 @@
     "node": ">=12"
   },
   "scripts": {
+    "prepublish": "tsup",
     "build": "tsup",
     "watch": "tsup --watch --silent --onSuccess 'echo build successful'"
   },

@@ -1,14 +1,14 @@
-import * as React from 'react'
+import React, { FC } from 'react'
 
 import {
-  Block as BlockType,
   SyncPointerBlock as SyncPointerBlockType
 } from 'notion-types'
 
 import { NotionBlockRenderer } from '../renderer'
+import { IBlock } from '../types'
 
-export const SyncPointerBlock: React.FC<{
-  block: BlockType
+export const SyncPointerBlock: FC<{
+  block: IBlock
   level: number
 }> = ({ block, level }) => {
   if (!block) {

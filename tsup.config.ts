@@ -1,6 +1,6 @@
-import { Options, defineConfig } from 'tsup'
+import { defineConfig } from 'tsup'
 
-const baseConfig: Options = {
+export default defineConfig({
   entry: [
     'src/index.tsx',
     'src/third-party/code.tsx',
@@ -10,19 +10,13 @@ const baseConfig: Options = {
     'src/third-party/pdf.tsx'
   ],
   outDir: 'build',
-  target: 'es2015',
+  target: 'es2017',
   platform: 'browser',
   format: ['esm'],
-  splitting: false,
+  splitting: true,
+  sourcemap: true,
+  minify: true,
+  dts: true,
   shims: false,
   external: ['fsevents.node']
-}
-
-export default defineConfig([
-  {
-    ...baseConfig,
-    outDir: 'build',
-    minify: true,
-    sourcemap: true
-  }
-])
+})

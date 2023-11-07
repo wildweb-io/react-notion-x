@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import * as types from 'notion-types'
+import {  PageBlock, AudioBlock, FileBlock, EquationBlock, CodeBlock, TableBlock } from 'notion-types'
 import {
   getBlockCollectionId,
   getBlockIcon,
@@ -23,9 +23,10 @@ import { Text } from './components/text'
 import { useNotionContext } from './context'
 import { LinkIcon } from './icons/link-icon'
 import { cs, getListNumber, isUrl } from './utils'
+import { IBlock } from './types'
 
 interface BlockProps {
-  block: types.Block
+  block: IBlock
   level: number
 
   className?: string
@@ -164,7 +165,7 @@ export const Block: React.FC<BlockProps> = (props) => {
           const isPageIconUrl = pageIcon && isUrl(pageIcon)
 
           const toc = getPageTableOfContents(
-            block as types.PageBlock,
+            block as PageBlock,
             recordMap
           )
 
@@ -645,15 +646,15 @@ export const Block: React.FC<BlockProps> = (props) => {
     }
 
     case 'audio':
-      return <Audio block={block as types.AudioBlock} className={blockId} />
+      return <Audio block={block as AudioBlock} className={blockId} />
 
     case 'file':
-      return <File block={block as types.FileBlock} className={blockId} />
+      return <File block={block as FileBlock} className={blockId} />
 
     case 'equation':
       return (
         <components.Equation
-          block={block as types.EquationBlock}
+          block={block as EquationBlock}
           inline={false}
           className={blockId}
         />
@@ -664,7 +665,7 @@ export const Block: React.FC<BlockProps> = (props) => {
         <components.Embed className={blockId} blockId={blockId} block={block} />
       )
     case 'code':
-      return <components.Code block={block as types.CodeBlock} />
+      return <components.Code block={block as CodeBlock} />
 
     case 'column_list':
       return <div className={cs('notion-row', blockId)}>{children}</div>
@@ -924,7 +925,7 @@ export const Block: React.FC<BlockProps> = (props) => {
 
     case 'table_row': {
       const tableBlock = recordMap.block[block.parent_id]
-        ?.value as types.TableBlock
+        ?.value as TableBlock
       const order = tableBlock.format?.table_block_column_order
       const formatMap = tableBlock.format?.table_block_column_format
       const backgroundColor = block.format?.block_color

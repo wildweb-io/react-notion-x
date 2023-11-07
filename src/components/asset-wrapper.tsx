@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import { BaseContentBlock, Block } from 'notion-types'
+import { BaseContentBlock,  } from 'notion-types'
 import { parsePageId } from 'notion-utils'
 
-import { useNotionContext } from '..'
+import { IBlock, useNotionContext } from '..'
 import { cs } from '../utils'
 import { Asset } from './asset'
 import { Text } from './text'
@@ -12,7 +12,7 @@ const urlStyle = { width: '100%' }
 
 export const AssetWrapper: React.FC<{
   blockId: string
-  block: Block
+  block: IBlock
 }> = ({ blockId, block }) => {
   const value = block as BaseContentBlock
   const { components, mapPageUrl, rootDomain, zoom } = useNotionContext()

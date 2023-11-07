@@ -1,6 +1,6 @@
-import * as React from 'react'
+import React, { FC, Fragment, ReactNode } from 'react'
 
-import { Block, Decoration, ExternalObjectInstance } from 'notion-types'
+import {  Decoration, ExternalObjectInstance } from 'notion-types'
 import { parsePageId } from 'notion-utils'
 
 import { useNotionContext } from '../context'
@@ -8,6 +8,7 @@ import { formatDate, getHashFragmentValue } from '../utils'
 import { EOI } from './eoi'
 import { GracefulImage } from './graceful-image'
 import { PageTitle } from './page-title'
+import { IBlock } from '../types'
 
 /**
  * Renders a single piece of Notion text, including basic rich text formatting.
@@ -17,9 +18,9 @@ import { PageTitle } from './page-title'
  * TODO: I think this implementation would be more correct if the reduce just added
  * attributes to the final element's style.
  */
-export const Text: React.FC<{
+export const Text: FC<{
   value: Decoration[]
-  block: Block
+  block: IBlock
   linkProps?: any
   linkProtocol?: string
   inline?: boolean // TODO: currently unused
@@ -28,7 +29,7 @@ export const Text: React.FC<{
     useNotionContext()
 
   return (
-    <React.Fragment>
+    <Fragment>
       {value?.map(([text, decorations], index) => {
         // TODO: sometimes notion shows a max of N items to prevent overflow
         // if (trim && index > 18) {
@@ -39,12 +40,12 @@ export const Text: React.FC<{
           if (text === ',') {
             return <span key={index} style={{ padding: '0.5em' }} />
           } else {
-            return <React.Fragment key={index}>{text}</React.Fragment>
+            return <Fragment key={index}>{text}</Fragment>
           }
         }
 
         const formatted = decorations.reduce(
-          (element: React.ReactNode, decorator) => {
+          (element: ReactNode, decorator) => {
             switch (decorator[0]) {
               case 'p': {
                 // link to an internal block (within the current workspace)
@@ -249,8 +250,8 @@ export const Text: React.FC<{
           <>{text}</>
         )
 
-        return <React.Fragment key={index}>{formatted}</React.Fragment>
+        return <Fragment key={index}>{formatted}</Fragment>
       })}
-    </React.Fragment>
+    </Fragment>
   )
 }

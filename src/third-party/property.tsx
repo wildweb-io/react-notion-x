@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as types from 'notion-types'
 import format from 'date-fns/format/index.js'
 import formatNumber from 'format-number'
-import { FormulaResult } from 'notion-types'
+import { FormulaResult,  } from 'notion-types'
 
 import { Checkbox } from '../components/checkbox'
 import { GracefulImage } from '../components/graceful-image'
@@ -12,10 +12,11 @@ import { Text } from '../components/text'
 import { useNotionContext } from '../context'
 import { cs } from '../utils'
 import { evalFormula } from './eval-formula'
+import { PropertyType } from '../types'
 
 export interface IPropertyProps {
   propertyId?: string
-  schema?: types.CollectionPropertySchema
+  schema?: Omit<types.CollectionPropertySchema, 'type'>&{type:PropertyType}
   data?: types.Decoration[]
   block?: types.Block
   collection?: types.Collection

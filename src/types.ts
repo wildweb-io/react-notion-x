@@ -1,15 +1,15 @@
 import * as React from 'react'
 
-import * as types from 'notion-types'
+import { ExtendedRecordMap, SearchParams, SearchResults, Collection, CollectionView, CollectionQueryResult, PageBlock, CollectionCardCover, CollectionCardCoverSize, CollectionCardCoverAspect, PropertyID,BaseContentBlock,  Block as Block_1, PropertyType as PropertyType_1 } from 'notion-types'
 
 export type MapPageUrlFn = (
   pageId: string,
-  recordMap?: types.ExtendedRecordMap | undefined
+  recordMap?: ExtendedRecordMap | undefined
 ) => string
-export type MapImageUrlFn = (url: string, block: types.Block) => string
+export type MapImageUrlFn = (url: string, block: IBlock) => string
 export type SearchNotionFn = (
-  params: types.SearchParams
-) => Promise<types.SearchResults>
+  params: SearchParams
+) => Promise<SearchResults>
 
 export type ComponentOverrideFn = (
   props: any,
@@ -63,27 +63,27 @@ export interface NotionComponents {
 }
 
 export interface CollectionViewProps {
-  collection: types.Collection
-  collectionView: types.CollectionView
-  collectionData: types.CollectionQueryResult
+  collection: Collection
+  collectionView: CollectionView
+  collectionData: CollectionQueryResult
   padding?: number
   width?: number
 }
 
 export interface CollectionCardProps {
-  collection: types.Collection
-  block: types.PageBlock
-  cover: types.CollectionCardCover
-  coverSize: types.CollectionCardCoverSize
-  coverAspect: types.CollectionCardCoverAspect
+  collection: Collection
+  block: PageBlock
+  cover: CollectionCardCover
+  coverSize: CollectionCardCoverSize
+  coverAspect: CollectionCardCoverAspect
   properties?: Array<{
-    property: types.PropertyID
+    property: PropertyID
     visible: boolean
   }>
   className?: string
 }
 export interface CollectionGroupProps {
-  collection: types.Collection
+  collection: Collection
   collectionViewComponent: React.ElementType
   collectionGroup: any
   hidden: boolean
@@ -92,3 +92,16 @@ export interface CollectionGroupProps {
   summaryProps: any
   detailsProps: any
 }
+
+
+
+interface ReplitBlock extends BaseContentBlock {
+  type: 'replit';
+}
+interface LinkPreviewBlock extends BaseContentBlock {
+  type: 'link_preview';
+}
+
+export type IBlock = Block_1 | ReplitBlock|LinkPreviewBlock
+
+export type PropertyType =PropertyType_1| 'status'
