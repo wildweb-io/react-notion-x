@@ -1,148 +1,156 @@
-import * as React from 'react'
+import React, {
+	Fragment,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react';
+import {getPageBreadcrumbs} from 'notion-utils';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {useNotionContext} from '../context';
+import {SearchIcon} from '../icons/search-icon';
+import {cs} from '../utils';
+import {PageIcon} from './page-icon';
+import {SearchDialog} from './search-dialog';
+import type {Block, CollectionViewPageBlock, PageBlock} from 'notion-types';
+import type {FC, ReactNode} from 'react';
+import type {SearchNotionFn} from '../types';
 
-import * as types from 'notion-types'
-import { getPageBreadcrumbs } from 'notion-utils'
-import { useHotkeys } from 'react-hotkeys-hook'
+export const Breadcrumbs: FC<{
+	readonly block: Block;
+	readonly rootOnly?: boolean;
+}> = ({block, rootOnly = false}) => {
+	const {recordMap, mapPageUrl, components} = useNotionContext();
 
-import { useNotionContext } from '../context'
-import { SearchIcon } from '../icons/search-icon'
-import { SearchNotionFn } from '../types'
-import { cs } from '../utils'
-import { PageIcon } from './page-icon'
-import { SearchDialog } from './search-dialog'
+	const breadcrumbs = useMemo(() => {
+		const breadcrumbs = getPageBreadcrumbs(recordMap, block.id);
 
-export const Header: React.FC<{
-  block: types.CollectionViewPageBlock | types.PageBlock
-}> = ({ block }) => {
-  return (
-    <header className='notion-header'>
-      <div className='notion-nav-header'>
-        <Breadcrumbs block={block} />
-        <Search block={block} />
-      </div>
-    </header>
-  )
-}
+		if (rootOnly) {
+			return [breadcrumbs[0]].filter(Boolean);
+		}
 
-export const Breadcrumbs: React.FC<{
-  block: types.Block
-  rootOnly?: boolean
-}> = ({ block, rootOnly = false }) => {
-  const { recordMap, mapPageUrl, components } = useNotionContext()
+		return breadcrumbs;
+	}, [recordMap, block.id, rootOnly]);
 
-  const breadcrumbs = React.useMemo(() => {
-    const breadcrumbs = getPageBreadcrumbs(recordMap, block.id)
-    if (rootOnly) {
-      return [breadcrumbs[0]].filter(Boolean)
-    }
+	return (
+		<div key='breadcrumbs' className='breadcrumbs'>
+			{breadcrumbs.map((breadcrumb, index: number) => {
+				if (!breadcrumb) {
+					return null;
+				}
 
-    return breadcrumbs
-  }, [recordMap, block.id, rootOnly])
+				const pageLinkProps: any = {};
+				const componentMap = {
+					pageLink: components.PageLink,
+				};
 
-  return (
-    <div className='breadcrumbs' key='breadcrumbs'>
-      {breadcrumbs.map((breadcrumb, index: number) => {
-        if (!breadcrumb) {
-          return null
-        }
+				if (breadcrumb.active) {
+					componentMap.pageLink = props => <div {...props} />;
+				} else {
+					pageLinkProps.href = mapPageUrl(breadcrumb.pageId);
+				}
 
-        const pageLinkProps: any = {}
-        const componentMap = {
-          pageLink: components.PageLink
-        }
+				return (
+					<Fragment key={breadcrumb.pageId}>
+						<componentMap.pageLink
+							className={cs('breadcrumb', breadcrumb.active && 'active')}
+							{...pageLinkProps}
+						>
+							{breadcrumb.icon ? (
+								<PageIcon className='icon' block={breadcrumb.block} />
+							) : null}
 
-        if (breadcrumb.active) {
-          componentMap.pageLink = (props) => <div {...props} />
-        } else {
-          pageLinkProps.href = mapPageUrl(breadcrumb.pageId)
-        }
+							{breadcrumb.title ? (
+								<span className='title'>{breadcrumb.title}</span>
+							) : null}
+						</componentMap.pageLink>
 
-        return (
-          <React.Fragment key={breadcrumb.pageId}>
-            <componentMap.pageLink
-              className={cs('breadcrumb', breadcrumb.active && 'active')}
-              {...pageLinkProps}
-            >
-              {breadcrumb.icon && (
-                <PageIcon className='icon' block={breadcrumb.block} />
-              )}
+						{index < breadcrumbs.length - 1 && (
+							<span className='spacer'>/</span>
+						)}
+					</Fragment>
+				);
+			})}
+		</div>
+	);
+};
 
-              {breadcrumb.title && (
-                <span className='title'>{breadcrumb.title}</span>
-              )}
-            </componentMap.pageLink>
+export const Search: FC<{
+	readonly block: Block;
+	readonly search?: SearchNotionFn;
+	readonly title?: ReactNode;
+}> = ({block, search, title = 'Search'}) => {
+	const {searchNotion, rootPageId, isShowingSearch, onHideSearch} =
+		useNotionContext();
+	const onSearchNotion = search || searchNotion;
 
-            {index < breadcrumbs.length - 1 && (
-              <span className='spacer'>/</span>
-            )}
-          </React.Fragment>
-        )
-      })}
-    </div>
-  )
-}
+	const [isSearchOpen, setIsSearchOpen] = useState(isShowingSearch);
 
-export const Search: React.FC<{
-  block: types.Block
-  search?: SearchNotionFn
-  title?: React.ReactNode
-}> = ({ block, search, title = 'Search' }) => {
-  const { searchNotion, rootPageId, isShowingSearch, onHideSearch } =
-    useNotionContext()
-  const onSearchNotion = search || searchNotion
+	useEffect(() => {
+		setIsSearchOpen(isShowingSearch);
+	}, [isShowingSearch]);
 
-  const [isSearchOpen, setIsSearchOpen] = React.useState(isShowingSearch)
-  React.useEffect(() => {
-    setIsSearchOpen(isShowingSearch)
-  }, [isShowingSearch])
+	const onOpenSearch = useCallback(() => {
+		setIsSearchOpen(true);
+	}, []);
 
-  const onOpenSearch = React.useCallback(() => {
-    setIsSearchOpen(true)
-  }, [])
+	const onCloseSearch = useCallback(() => {
+		setIsSearchOpen(false);
 
-  const onCloseSearch = React.useCallback(() => {
-    setIsSearchOpen(false)
-    if (onHideSearch) {
-      onHideSearch()
-    }
-  }, [onHideSearch])
+		if (onHideSearch) {
+			onHideSearch();
+		}
+	}, [onHideSearch]);
 
-  useHotkeys('cmd+p', (event) => {
-    onOpenSearch()
-    event.preventDefault()
-    event.stopPropagation()
-  })
+	useHotkeys('cmd+p', event => {
+		onOpenSearch();
+		event.preventDefault();
+		event.stopPropagation();
+	});
 
-  useHotkeys('cmd+k', (event) => {
-    onOpenSearch()
-    event.preventDefault()
-    event.stopPropagation()
-  })
+	useHotkeys('cmd+k', event => {
+		onOpenSearch();
+		event.preventDefault();
+		event.stopPropagation();
+	});
 
-  const hasSearch = !!onSearchNotion
+	const hasSearch = !!onSearchNotion;
 
-  return (
-    <>
-      {hasSearch && (
-        <div
-          role='button'
-          className={cs('breadcrumb', 'button', 'notion-search-button')}
-          onClick={onOpenSearch}
-        >
-          <SearchIcon className='searchIcon' />
+	return (
+		<>
+			{hasSearch ? (
+				<div
+					role='button'
+					className={cs('breadcrumb', 'button', 'notion-search-button')}
+					onClick={onOpenSearch}
+				>
+					<SearchIcon className='searchIcon' />
 
-          {title && <span className='title'>{title}</span>}
-        </div>
-      )}
+					{title ? <span className='title'>{title}</span> : null}
+				</div>
+			) : null}
 
-      {isSearchOpen && hasSearch && (
-        <SearchDialog
-          isOpen={isSearchOpen}
-          rootBlockId={rootPageId || block?.id}
-          onClose={onCloseSearch}
-          searchNotion={onSearchNotion}
-        />
-      )}
-    </>
-  )
-}
+			{isSearchOpen && hasSearch ? (
+				<SearchDialog
+					isOpen={isSearchOpen}
+					rootBlockId={rootPageId || block?.id}
+					searchNotion={onSearchNotion}
+					onClose={onCloseSearch}
+				/>
+			) : null}
+		</>
+	);
+};
+
+export const Header: FC<{
+	readonly block: CollectionViewPageBlock | PageBlock;
+}> = ({block}) => {
+	return (
+		<header className='notion-header'>
+			<div className='notion-nav-header'>
+				<Breadcrumbs block={block} />
+				<Search block={block} />
+			</div>
+		</header>
+	);
+};

@@ -1,127 +1,127 @@
-import * as React from 'react'
+import React, {useEffect, useMemo} from 'react';
+import throttle from 'lodash.throttle';
+import {uuidToId} from 'notion-utils';
+import {cs} from '../utils';
+import type {FC, ReactNode} from 'react';
+import type {TableOfContentsEntry} from 'notion-utils';
 
-import throttle from 'lodash.throttle'
-import { TableOfContentsEntry, uuidToId } from 'notion-utils'
-
-import { cs } from '../utils'
-
-export const PageAside: React.FC<{
-  toc: Array<TableOfContentsEntry>
-  activeSection: string | null
-  setActiveSection: (activeSection: string | null) => unknown
-  hasToc: boolean
-  hasAside: boolean
-  pageAside?: React.ReactNode
-  className?: string
+export const PageAside: FC<{
+	readonly toc: TableOfContentsEntry[];
+	readonly activeSection: string | null;
+	readonly setActiveSection: (activeSection: string | null) => unknown;
+	readonly hasToc: boolean;
+	readonly hasAside: boolean;
+	readonly pageAside?: ReactNode;
+	readonly className?: string;
 }> = ({
-  toc,
-  activeSection,
-  setActiveSection,
-  pageAside,
-  hasToc,
-  hasAside,
-  className
+	toc,
+	activeSection,
+	setActiveSection,
+	pageAside,
+	hasToc,
+	hasAside,
+	className,
 }) => {
-  const throttleMs = 100
-  const actionSectionScrollSpy = React.useMemo(
-    () =>
-      throttle(() => {
-        const sections = document.getElementsByClassName('notion-h')
+	const throttleMs = 100;
+	const actionSectionScrollSpy = useMemo(
+		() =>
+			throttle(() => {
+				const sections = document.querySelectorAll('.notion-h');
 
-        let prevBBox: DOMRect = null
-        let currentSectionId = activeSection
+				let prevBBox: DOMRect = null;
+				let currentSectionId = activeSection;
 
-        for (let i = 0; i < sections.length; ++i) {
-          const section = sections[i]
-          if (!section || !(section instanceof Element)) continue
+				for (const section of sections) {
+					if (!section || !(section instanceof Element)) continue;
 
-          if (!currentSectionId) {
-            currentSectionId = section.getAttribute('data-id')
-          }
+					if (!currentSectionId) {
+						currentSectionId = section.dataset.id;
+					}
 
-          const bbox = section.getBoundingClientRect()
-          const prevHeight = prevBBox ? bbox.top - prevBBox.bottom : 0
-          const offset = Math.max(150, prevHeight / 4)
+					const bbox = section.getBoundingClientRect();
+					const prevHeight = prevBBox ? bbox.top - prevBBox.bottom : 0;
+					const offset = Math.max(150, prevHeight / 4);
 
-          // GetBoundingClientRect returns values relative to the viewport
-          if (bbox.top - offset < 0) {
-            currentSectionId = section.getAttribute('data-id')
+					// GetBoundingClientRect returns values relative to the viewport
+					if (bbox.top - offset < 0) {
+						currentSectionId = section.dataset.id;
 
-            prevBBox = bbox
-            continue
-          }
+						prevBBox = bbox;
 
-          // No need to continue loop, if last element has been detected
-          break
-        }
+						continue;
+					}
 
-        setActiveSection(currentSectionId)
-      }, throttleMs),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      // explicitly not taking a dependency on activeSection
-      setActiveSection
-    ]
-  )
+					// No need to continue loop, if last element has been detected
+					break;
+				}
 
-  React.useEffect(() => {
-    if (!hasToc) {
-      return
-    }
+				setActiveSection(currentSectionId);
+			}, throttleMs),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[
+			// explicitly not taking a dependency on activeSection
+			setActiveSection,
+		],
+	);
 
-    window.addEventListener('scroll', actionSectionScrollSpy)
+	useEffect(() => {
+		if (!hasToc) {
+			return;
+		}
 
-    actionSectionScrollSpy()
+		window.addEventListener('scroll', actionSectionScrollSpy);
 
-    return () => {
-      window.removeEventListener('scroll', actionSectionScrollSpy)
-    }
-  }, [hasToc, actionSectionScrollSpy])
+		actionSectionScrollSpy();
 
-  if (!hasAside) {
-    return null
-  }
+		return () => {
+			window.removeEventListener('scroll', actionSectionScrollSpy);
+		};
+	}, [hasToc, actionSectionScrollSpy]);
 
-  return (
-    <aside className={cs('notion-aside', className)}>
-      {hasToc && (
-        <div className='notion-aside-table-of-contents'>
-          <div className='notion-aside-table-of-contents-header'>
-            Table of Contents
-          </div>
+	if (!hasAside) {
+		return null;
+	}
 
-          <nav className='notion-table-of-contents'>
-            {toc.map((tocItem) => {
-              const id = uuidToId(tocItem.id)
+	return (
+		<aside className={cs('notion-aside', className)}>
+			{hasToc ? (
+				<div className='notion-aside-table-of-contents'>
+					<div className='notion-aside-table-of-contents-header'>
+						Table of Contents
+					</div>
 
-              return (
-                <a
-                  key={id}
-                  href={`#${id}`}
-                  className={cs(
-                    'notion-table-of-contents-item',
-                    `notion-table-of-contents-item-indent-level-${tocItem.indentLevel}`,
-                    activeSection === id &&
-                      'notion-table-of-contents-active-item'
-                  )}
-                >
-                  <span
-                    className='notion-table-of-contents-item-body'
-                    style={{
-                      display: 'inline-block',
-                      marginLeft: tocItem.indentLevel * 16
-                    }}
-                  >
-                    {tocItem.text}
-                  </span>
-                </a>
-              )
-            })}
-          </nav>
-        </div>
-      )}
+					<nav className='notion-table-of-contents'>
+						{toc.map(tocItem => {
+							const id = uuidToId(tocItem.id);
 
-      {pageAside}
-    </aside>
-  )
-}
+							return (
+								<a
+									key={id}
+									href={`#${id}`}
+									className={cs(
+										'notion-table-of-contents-item',
+										`notion-table-of-contents-item-indent-level-${tocItem.indentLevel}`,
+										activeSection === id &&
+											'notion-table-of-contents-active-item',
+									)}
+								>
+									<span
+										className='notion-table-of-contents-item-body'
+										style={{
+											display: 'inline-block',
+											marginLeft: tocItem.indentLevel * 16,
+										}}
+									>
+										{tocItem.text}
+									</span>
+								</a>
+							);
+						})}
+					</nav>
+				</div>
+			) : null}
+
+			{pageAside}
+		</aside>
+	);
+};

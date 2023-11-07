@@ -1,65 +1,65 @@
-import * as React from 'react'
+import React, {memo} from 'react';
+import {getBlockTitle} from 'notion-utils';
+import {useNotionContext} from '../context';
+import {cs} from '../utils';
+import {PageIcon} from './page-icon';
+import {Text} from './text';
+import type {FC} from 'react';
+import type {Block, Decoration} from 'notion-types';
 
-import { Block, Decoration } from 'notion-types'
-import { getBlockTitle } from 'notion-utils'
+export const PageTitleImpl: FC<{
+	readonly block: Block;
+	readonly className?: string;
+	readonly defaultIcon?: string;
+}> = ({block, className, defaultIcon, ...rest}) => {
+	const {recordMap} = useNotionContext();
 
-import { useNotionContext } from '../context'
-import { cs } from '../utils'
-import { PageIcon } from './page-icon'
-import { Text } from './text'
+	if (!block) return null;
 
-export const PageTitleImpl: React.FC<{
-  block: Block
-  className?: string
-  defaultIcon?: string
-}> = ({ block, className, defaultIcon, ...rest }) => {
-  const { recordMap } = useNotionContext()
+	if (
+		block.type === 'collection_view_page' ||
+		block.type === 'collection_view'
+	) {
+		const title = getBlockTitle(block, recordMap);
 
-  if (!block) return null
+		if (!title) {
+			return null;
+		}
 
-  if (
-    block.type === 'collection_view_page' ||
-    block.type === 'collection_view'
-  ) {
-    const title = getBlockTitle(block, recordMap)
-    if (!title) {
-      return null
-    }
+		const titleDecoration: Decoration[] = [[title]];
 
-    const titleDecoration: Decoration[] = [[title]]
+		return (
+			<span className={cs('notion-page-title', className)} {...rest}>
+				<PageIcon
+					block={block}
+					defaultIcon={defaultIcon}
+					className='notion-page-title-icon'
+				/>
 
-    return (
-      <span className={cs('notion-page-title', className)} {...rest}>
-        <PageIcon
-          block={block}
-          defaultIcon={defaultIcon}
-          className='notion-page-title-icon'
-        />
+				<span className='notion-page-title-text'>
+					<Text value={titleDecoration} block={block} />
+				</span>
+			</span>
+		);
+	}
 
-        <span className='notion-page-title-text'>
-          <Text value={titleDecoration} block={block} />
-        </span>
-      </span>
-    )
-  }
+	if (!block.properties?.title) {
+		return null;
+	}
 
-  if (!block.properties?.title) {
-    return null
-  }
+	return (
+		<span className={cs('notion-page-title', className)} {...rest}>
+			<PageIcon
+				block={block}
+				defaultIcon={defaultIcon}
+				className='notion-page-title-icon'
+			/>
 
-  return (
-    <span className={cs('notion-page-title', className)} {...rest}>
-      <PageIcon
-        block={block}
-        defaultIcon={defaultIcon}
-        className='notion-page-title-icon'
-      />
+			<span className='notion-page-title-text'>
+				<Text value={block.properties?.title} block={block} />
+			</span>
+		</span>
+	);
+};
 
-      <span className='notion-page-title-text'>
-        <Text value={block.properties?.title} block={block} />
-      </span>
-    </span>
-  )
-}
-
-export const PageTitle = React.memo(PageTitleImpl)
+export const PageTitle = memo(PageTitleImpl);
