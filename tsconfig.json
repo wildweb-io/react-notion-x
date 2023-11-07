@@ -5,6 +5,7 @@
     "moduleResolution": "Node",
     "jsx": "react",
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "strict": false
   },
   "include": ["src"]
