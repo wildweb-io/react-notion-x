@@ -15,7 +15,7 @@ export default defineConfig({
   format: ['esm'],
   splitting: true,
   sourcemap: true,
-  minify: true,
+  minify: false,
   dts: true,
   shims: false,
   external: ['fsevents.node']
